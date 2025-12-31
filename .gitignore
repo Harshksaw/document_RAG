@@ -6,3 +6,4 @@ venv/
 *.pyc
 test.pyc
 __pycache__/
+logs/
