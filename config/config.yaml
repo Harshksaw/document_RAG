@@ -12,9 +12,9 @@ retriever:
 llm:
   groq:
     provider: "groq"
-    model_name: "deepseek-r1-distill-llama-70b"
+    model_name: "llama-3.3-70b-versatile"  # 128K context window
     temperature: 0
-    max_output_tokens: 2048
+    max_output_tokens: 8192
 
   google:
     provider: "google"

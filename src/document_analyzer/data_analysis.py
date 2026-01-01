@@ -32,23 +32,39 @@ class DocumentAnalyzer:
             raise DocumentPortalException("Error initializing DocumentAnalyzer", sys) from e
         
     
-    def analyze_document(self, document_text:str)->dict:
+    def analyze_document(self, document_text:str, max_chars:int=15000)->dict:
+        """
+        Analyze document metadata.
+        For large documents, only uses first few pages for metadata extraction.
         
+        Args:
+            document_text: Full document text
+            max_chars: Maximum characters to analyze (default 15000 ≈ first 5-10 pages)
+        """
         try:
+            # For metadata extraction, use only the beginning of the document
+            # (title, author, date, etc. are usually in first few pages)
+            text_sample = document_text[:max_chars]
+            
+            if len(document_text) > max_chars:
+                self.log.info(
+                    "Large document detected, analyzing first portion only",
+                    total_chars=len(document_text),
+                    sample_chars=len(text_sample)
+                )
+            
             chain= self.prompt | self.llm | self.fixing_parser
             
-            self.log.info("Metadata  analysis chain intialized")
-            
+            self.log.info("Metadata analysis chain initialized")
             
             response = chain.invoke({
                 "format_instructions": self.parser.get_format_instructions(),
-                "document_text": document_text
+                "document_text": text_sample
             })
             
-            self.log.info("Document analyzed successfully", keys=list(response.keys()   ))
+            self.log.info("Document analyzed successfully", keys=list(response.keys()))
             return response 
             
         except Exception as e:
             self.log.error(f"Error analyzing document: {e}")
             raise DocumentPortalException("Error analyzing document", sys) from e
-            raise DocumentPortalException("Error analyzing document", e) from e
