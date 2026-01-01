@@ -3,6 +3,8 @@ import sys
 import json
 from pathlib import Path
 
+# Add project root to path for direct execution
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from utils.config_loader import load_config
 from dotenv import load_dotenv
