@@ -21,3 +21,4 @@ pypdf==5.8.0
 cfn-lint
 jupyter
 notebook
+-e .
