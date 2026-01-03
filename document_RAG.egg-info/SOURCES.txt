@@ -8,7 +8,7 @@ exception/custom_exception.py
 logger/__init__.py
 logger/custom_logger.py
 prompt/__init__.py
-prompt/prompt.py
+prompt/prompt_library.py
 src/__init__.py
 src/document_analyzer/__init__.py
 src/document_analyzer/data_analysis.py
@@ -18,3 +18,4 @@ src/multi_document_chat/__init__.py
 utils/__init__.py
 utils/config_loader.py
 utils/model_loader.py
+utils/text_chunker.py
