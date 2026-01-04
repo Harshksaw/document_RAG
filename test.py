@@ -73,6 +73,9 @@ def test_compare_documents():
         def getbuffer(self):
             return self._buffer
 
+        def read_bytes(self):
+            return self._buffer
+
     # Instantiate
     comparator = DocumentIngestion()
     ref_upload = FakeUpload(ref_path)
