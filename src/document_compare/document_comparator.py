@@ -3,7 +3,7 @@ from pathlib import Path
 import fitz
 
 from logger.custom_logger import CustomLogger
-from exceptions.custom_exception import CustomException 
+from exception.custom_exception import DocumentPortalException 
 from prompt.prompt_library import PROMPT_REGISTRY
 from utils.model_loader import ModelLoader
 from langchain_core.outpi
@@ -29,8 +29,8 @@ class DocumentComparator:
             pass
             
         except Exception as e:
-            self.logger.error("Error in compare_documents method of DocumentComparator class", e)
-            raise CustomException(e, sys) from e
+            self.log.error(f"Error in compare_documents method of DocumentComparator class: {e}")
+            raise DocumentPortalException(e, sys) from e
     
     def format_reponse(self):
         pass
