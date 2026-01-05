@@ -1,9 +1,24 @@
-# # Test code for document ingestion and analysis using a PDFHandler and DocumentAnalyzer
+# Test code for document ingestion and analysis using a PDFHandler and DocumentAnalyzer
 
 import os
 from pathlib import Path
 from src.document_analyzer.data_ingestion import DocumentHandler       # Your PDFHandler class
 from src.document_analyzer.data_analysis import DocumentAnalyzer  # Your DocumentAnalyzer class
+
+# Terminal colors and formatting
+try:
+    from colorama import Fore, Back, Style, init
+    init(autoreset=True)
+    COLORS_AVAILABLE = True
+except ImportError:
+    # Fallback if colorama is not installed
+    class Fore:
+        GREEN = CYAN = YELLOW = RED = MAGENTA = BLUE = WHITE = ""
+    class Back:
+        BLACK = ""
+    class Style:
+        BRIGHT = RESET_ALL = ""
+    COLORS_AVAILABLE = False
 
 # Path to the PDF you want to test
 PDF_PATH = r"/data/AIProjects/document_RAG/data/document_analysis/sample.pdf"
@@ -61,6 +76,13 @@ def load_fake_uploaded_file(file_path: Path):
 
 # ---- Step 1: Save and combine PDFs ---- #
 def test_compare_documents():
+    """Test document comparison with enhanced terminal output"""
+    
+    # Print header
+    print(f"\n{Fore.CYAN}{'='*80}{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}{Style.BRIGHT}{'DOCUMENT COMPARISON TEST':^80}{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}{'='*80}{Style.RESET_ALL}\n")
+    
     ref_path = Path("/data/AIProjects/document_RAG/data/document_compare/Long_Report_V1.pdf")
     act_path = Path("/data/AIProjects/document_RAG/data/document_compare/Long_Report_V2.pdf")
 
@@ -76,28 +98,59 @@ def test_compare_documents():
         def read_bytes(self):
             return self._buffer
 
+    # Step 1: File Loading
+    print(f"{Fore.YELLOW}[STEP 1]{Style.RESET_ALL} {Fore.WHITE}Loading Documents...{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}  ✓ Reference: {Style.RESET_ALL}{ref_path.name}")
+    print(f"{Fore.GREEN}  ✓ Actual:    {Style.RESET_ALL}{act_path.name}")
+    print()
+    
     # Instantiate
     comparator = DocumentIngestion()
     ref_upload = FakeUpload(ref_path)
     act_upload = FakeUpload(act_path)
 
-    # Save files and combine
+    # Step 2: Save and Combine
+    print(f"{Fore.YELLOW}[STEP 2]{Style.RESET_ALL} {Fore.WHITE}Processing Documents...{Style.RESET_ALL}")
     ref_file, act_file = comparator.save_uploaded_files(ref_upload, act_upload)
-    combined_text = comparator.combine_documents()
-    comparator.clean_old_sessions(keep_latest=3)
-
-    print("\n Combined Text Preview (First 1000 chars):\n")
-    print(combined_text[:1000])
-
-    # ---- Step 2: Run LLM comparison ---- #
-    llm_comparator = DocumentComparatorLLM()
-    df = llm_comparator.compare_documents(combined_text)
+    print(f"{Fore.GREEN}  ✓ Files saved successfully{Style.RESET_ALL}")
     
-    print("\n Comparison DataFrame:\n")
-    print(df)
+    combined_text = comparator.combine_documents()
+    print(f"{Fore.GREEN}  ✓ Documents combined{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}  ℹ Combined text length: {Style.RESET_ALL}{len(combined_text):,} characters")
+    
+    comparator.clean_old_sessions(keep_latest=3)
+    print(f"{Fore.GREEN}  ✓ Old sessions cleaned{Style.RESET_ALL}")
+    print()
+
+    # Preview
+    print(f"{Fore.MAGENTA}{'─'*80}{Style.RESET_ALL}")
+    print(f"{Fore.MAGENTA}{Style.BRIGHT}Combined Text Preview (First 1000 chars){Style.RESET_ALL}")
+    print(f"{Fore.MAGENTA}{'─'*80}{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}{combined_text[:1000]}{Style.RESET_ALL}")
+    print(f"{Fore.MAGENTA}{'─'*80}{Style.RESET_ALL}\n")
+
+    # Step 3: LLM Comparison
+    print(f"{Fore.YELLOW}[STEP 3]{Style.RESET_ALL} {Fore.WHITE}Running LLM Comparison...{Style.RESET_ALL}")
+    llm_comparator = DocumentComparatorLLM()
+    print(f"{Fore.CYAN}  ⏳ Analyzing documents with LLM...{Style.RESET_ALL}")
+    
+    df = llm_comparator.compare_documents(combined_text)
+    print(f"{Fore.GREEN}  ✓ Comparison complete{Style.RESET_ALL}")
+    print()
+    
+    # Results
+    print(f"{Fore.BLUE}{'='*80}{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}{Style.BRIGHT}{'COMPARISON RESULTS':^80}{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}{'='*80}{Style.RESET_ALL}")
+    print(f"\n{Fore.WHITE}{df}{Style.RESET_ALL}\n")
+    print(f"{Fore.BLUE}{'='*80}{Style.RESET_ALL}\n")
+    
+    # Summary
+    print(f"{Fore.GREEN}{Style.BRIGHT}✓ Test completed successfully!{Style.RESET_ALL}\n")
 
 if __name__ == "__main__":
     test_compare_documents()
+
     
     
 
