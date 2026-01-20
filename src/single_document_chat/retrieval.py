@@ -1,19 +1,25 @@
 from prompt.prompt_library import PROMPT_REGISTRY
-from model.models import PromptType
-from logger import GLOBAL_LOGGER as log
+from models.model import PromptType
+from logger.custom_logger import CustomLogger
 from exception.custom_exception import DocumentPortalException
 from utils.model_loader import ModelLoader
-from langchain.chains import create_history_aware_retriever, create_stuff_documents_chain, create_retrieval_chain
+from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain.memory import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
 
+
+
+load_dotenv()
+
 class ConversationalRAG:
     def __init__(self, session_id: str, retriever)-> None:
-        try:
             self.log = CustomLogger().get_logger(__name__)
             self.session_id = session_id
             self.retriever = retriever
+        try:
 
             self.llm = self._load_llm()
             self.contextualize_prompt = PROMPT_REGISTRY[PromptType.CONTEXTUALIZE_QUESTION.value]
@@ -31,7 +37,7 @@ class ConversationalRAG:
             )
             self.chain = RunnableWithMessageHistory(
                 self.rag_chain,
-                self._get_session_history(self.session_id)
+                self._get_session_history(self.session_id),
                 input_message_key="input",
                 history_messages_key="chat_history",
                 output_message_key="answer"
@@ -41,7 +47,7 @@ class ConversationalRAG:
 
         except Exception as e:
             self.log.error("Error in ConversationalRAG initialization: %s", error=str(e))
-            raise DocumentPortalException("Error in ConversationalRAG initialization: %s" sys)  
+            raise DocumentPortalException("Error in ConversationalRAG initialization: %s", sys)  
 
     def _load_llm(self)-> None:
         try:
@@ -54,7 +60,7 @@ class ConversationalRAG:
             return self.llm
         except Exception as e:
             self.log.error("Error in loading LLM: %s", error=str(e))
-            raise DocumentPortalException("Error in loading LLM: %s" sys)  
+            raise DocumentPortalException("Error in loading LLM: %s", sys)  
 
 
     def load_retriever(self):
@@ -71,7 +77,7 @@ class ConversationalRAG:
 
         except Exception as e:
             self.log.error("Error in loading retriever: %s", error=str(e))
-            raise DocumentPortalException("Error in loading retriever: %s" sys)  
+            raise DocumentPortalException("Error in loading retriever: %s", sys)  
     def invoke(self):
         try:
             self.chain.invoke({
@@ -88,7 +94,7 @@ class ConversationalRAG:
 
         except Exception as e:
             self.log.error("Error in invoke: %s", error=str(e))
-            raise DocumentPortalException("Error in invoke: %s" sys)  
+            raise DocumentPortalException("Error in invoke: %s", sys)  
 
     def _get_session_history(self, session_id: str):
         try:
@@ -98,4 +104,4 @@ class ConversationalRAG:
             return session_history
         except Exception as e:
             self.log.error("Error in getting session history: %s", error=str(e))
-            raise DocumentPortalException("Error in getting session history: %s" sys)  
+            raise DocumentPortalException("Error in getting session history: %s", sys)  
