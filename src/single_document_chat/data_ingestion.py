@@ -61,7 +61,7 @@ class SingleDocIngestor:
             
         except Exception as e:
             self.log.error("Error in ingesting files: %s", e)
-            raise DocumentPortalException("Error in ingesting files: %s" sys)
+            raise DocumentPortalException("Error in ingesting files: %s", sys)
 
 
     def _create_retriever(self):
@@ -87,6 +87,7 @@ class SingleDocIngestor:
 
 
             self.log.info("Retriever created successfully")
+            return retriever
 
 
 
@@ -95,4 +96,4 @@ class SingleDocIngestor:
             return retriever
         except Exception as e:
             self.log.error("Error in creating retriever: %s", error=str(e))
-            raise DocumentPortalException("Error in creating retriever: %s" sys)
+            raise DocumentPortalException("Error in creating retriever: %s", sys)
