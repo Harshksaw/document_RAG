@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from typing import List
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from logger.custom_logger import CustomLogger
@@ -29,10 +30,10 @@ class DocumentIngestor:
 
             self.model_loader = ModelLoader()
             self.log.info(
-                "DocumentIngestor initialized"
+                "DocumentIngestor initialized",
                 temp_base=str(self.temp_dir),
                 faiss_base=str(self.faiss_dir),
-                session_id=self.session_id
+                session_id=self.session_id,
                 temp_path=str(self.session_temp_dir),
                 faiss_path=str(self.session_faiss_dir)
             )
@@ -93,9 +94,26 @@ class DocumentIngestor:
             self.log.error(f"Failed to ingest files: {str(e)}")
             raise DocumentPortalException(f"Failed to ingest files: {str(e)}")
 
-    def _create_retriever(self, documents: List[str]):
+    def _create_retriever(self, documents: List):
         try:
+
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=300,
+                length_function=len,
+                is_separator_regex=False,
+            )
+            splits = text_splitter.split_documents(documents)
             
+            embeddings = self.model_loader.load_embeddings()
+            
+            vectorstore = FAISS.from_documents(documents=splits, embedding=embeddings)
+            vectorstore.save_local(self.session_faiss_dir)
+            
+            
+            self.log.info("Vector store created and saved", path=str(self.session_faiss_dir))
+            return vectorstore
+
 
         except Exception as e:
             self.log.error(f"Failed to create retriever: {str(e)}")
