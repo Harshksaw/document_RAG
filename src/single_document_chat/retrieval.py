@@ -1,5 +1,5 @@
 from prompt.prompt_library import PROMPT_REGISTRY
-from models.model import PromptType
+from model.models import PromptType
 from logger.custom_logger import CustomLogger
 from exception.custom_exception import DocumentPortalException
 from utils.model_loader import ModelLoader
