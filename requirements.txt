@@ -21,4 +21,5 @@ pypdf==5.8.0
 cfn-lint
 jupyter
 notebook
+colorama==0.4.6
 -e .

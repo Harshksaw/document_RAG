@@ -1,7 +1,7 @@
 
 import sys
 from utils.model_loader import ModelLoader
-from models.model import *
+from model.models import *
 from exception.custom_exception import DocumentPortalException
 from langchain.output_parsers import OutputFixingParser
 from langchain_core.output_parsers import JsonOutputParser
