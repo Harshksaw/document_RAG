@@ -28,14 +28,10 @@
           "value": "production"
         }
       ],
-      "secrets": [
+  "secrets": [
         {
-          "name": "GROQ_API_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-west-2:713881791905:secret:llmops-Li3SrD:GROQ_API_KEY::"
-        },
-        {
-          "name": "GOOGLE_API_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-west-2:713881791905:secret:llmops-Li3SrD:GOOGLE_API_KEY::"
+          "name": "API_KEYS",
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-2:459497895986:secret:api_keys-nZTtj8"
         }
       ],
       "logConfiguration": {
