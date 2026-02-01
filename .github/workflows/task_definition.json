@@ -2,9 +2,7 @@
   "family": "documentportaltd",
   "networkMode": "awsvpc",
   "executionRoleArn": "arn:aws:iam::713881791905:role/ecsTaskExecutionRole",
-  "requiresCompatibilities": [
-    "FARGATE"
-  ],
+  "requiresCompatibilities": ["FARGATE"],
   "cpu": "1024",
   "memory": "8192",
   "containerDefinitions": [
@@ -28,11 +26,12 @@
           "value": "production"
         }
       ],
-  "secrets": [
+      "secrets": [
         {
           "name": "API_KEYS",
-          "valueFrom": "arn:aws:secretsmanager:ap-southeast-2:459497895986:secret:api_keys-nZTtj8"
+          "valueFrom": "arn:aws:secretsmanager:us-west-2:713881791905:secret:llmops-Li3SrD:API_KEYS"
         }
+        
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
