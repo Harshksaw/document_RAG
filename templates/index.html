@@ -11,14 +11,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="/static/style.css" rel="stylesheet" />
     <style>
-        /* Portfolio Modal Styles */
+        /* Portfolio Modal Styles High Contrast */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.75);
+            /* Darker backdrop */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -26,7 +27,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(5px);
         }
 
         .modal-overlay.show {
@@ -35,15 +36,21 @@
         }
 
         .modal-content {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 12px;
-            max-width: 500px;
+            background: #ffffff;
+            /* Explicit White */
+            color: #0f172a;
+            /* Slate 900 */
+            padding: 2.5rem;
+            border-radius: 16px;
+            max-width: 550px;
             width: 90%;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             text-align: center;
+            border-top: 6px solid #4f46e5;
+            /* Brand Accent */
             transform: translateY(20px);
             transition: transform 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
 
         .modal-overlay.show .modal-content {
@@ -51,49 +58,103 @@
         }
 
         .profile-img {
-            width: 80px;
-            height: 80px;
-            background: #e0e7ff;
-            color: #4f46e5;
+            width: 86px;
+            height: 86px;
+            background: linear-gradient(135deg, #4f46e5, #818cf8);
+            color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            margin: 0 auto 1rem;
-            font-weight: bold;
+            font-size: 2.2rem;
+            margin: 0 auto 1.2rem;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #1e293b;
+        }
+
+        .modal-subtitle {
+            color: #475569;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .features-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1.25rem;
+            border-radius: 12px;
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .features-box h4 {
+            margin: 0 0 0.75rem;
+            color: #334155;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+        }
+
+        .features-box ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .features-box li {
+            color: #334155;
+            font-size: 0.95rem;
+            margin-bottom: 0.4rem;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .features-box li strong {
+            color: #0f172a;
         }
 
         .tech-stack {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.6rem;
             justify-content: center;
-            margin: 1.5rem 0;
+            margin-bottom: 1.5rem;
         }
 
         .tech-tag {
-            background: #f3f4f6;
-            color: #374151;
-            padding: 0.25rem 0.75rem;
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #dbeafe;
+            padding: 0.35rem 0.85rem;
             border-radius: 99px;
             font-size: 0.85rem;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .btn-close {
-            background: #111827;
-            color: #fff;
+            background: linear-gradient(to right, #4f46e5, #6366f1);
+            color: white;
             border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
+            padding: 0.9rem 2.5rem;
+            border-radius: 99px;
             font-weight: 600;
+            font-size: 1rem;
             cursor: pointer;
-            transition: transform 0.1s;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
         }
 
         .btn-close:hover {
-            transform: scale(1.05);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
         }
     </style>
 </head>
@@ -294,21 +355,31 @@
     <div id="portfolio-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="profile-img">HS</div>
-            <h2>Hi, I'm Harsh Saw 👋</h2>
-            <p style="color: #6b7280; margin-top: 0.5rem;">
-                Welcome to my <strong>Document RAG Portal</strong>.
-                This project showcases an end-to-end AI application for analyzing and chatting with documents.
+            <h2 class="modal-title">Hi, I'm Harsh Saw 👋</h2>
+            <p class="modal-subtitle">
+                Welcome to my <strong>Document RAG Portal</strong>.<br>
+                An enterprise-ready AI agent demonstrating full-stack engineering.
             </p>
+
+            <div class="features-box">
+                <h4>🚀 Key Features:</h4>
+                <ul>
+                    <li><strong>Smart Analysis:</strong> Extract entities & structure from PDFs.</li>
+                    <li><strong>Precision Compare:</strong> Detect page-by-page changes.</li>
+                    <li><strong>RAG Chat:</strong> Talk to documents with Context-Aware AI.</li>
+                </ul>
+            </div>
 
             <div class="tech-stack">
                 <span class="tech-tag">⚡ FastAPI</span>
-                <span class="tech-tag">🦜🔗 LangChain</span>
+                <span class="tech-tag">🦜 LangChain</span>
+                <span class="tech-tag">☁️ AWS Fargate</span>
                 <span class="tech-tag">🐳 Docker</span>
                 <span class="tech-tag">☁️ AWS ECS Fargate</span>
                 <span class="tech-tag">🧠 Google Gemini / Groq</span>
             </div>
 
-            <button class="btn-close" onclick="closeModal()">Explore Demo</button>
+            <button class="btn-close" onclick="closeModal()">Explore Portfolio Project</button>
         </div>
     </div>
 
