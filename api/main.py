@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
+
 from src.document_ingestion.data_ingestion import (
     DocHandler,
     DocumentComparator,
@@ -16,7 +17,6 @@ from src.document_compare.document_comparator import DocumentComparatorLLM
 from src.document_chat.retrieval import ConversationalRAG
 from utils.document_ops import FastAPIFileAdapter,read_pdf_via_handler
 from logger import GLOBAL_LOGGER as log
-
 
 FAISS_BASE = os.getenv("FAISS_BASE", "faiss_index")
 UPLOAD_BASE = os.getenv("UPLOAD_BASE", "data")
@@ -48,15 +48,7 @@ def health() -> Dict[str, str]:
     log.info("Health check passed.")
     return {"status": "ok", "service": "document-portal"}
 
-
-def _read_pdf_via_handler(handler:DocHandler, path:str)-> List[Document]:
-    try:
-        pass
-
-    except Exception as e:
-        log.error(f"Error reading PDF: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+# ---------- ANALYZE ----------
 @app.post("/analyze")
 async def analyze_document(file: UploadFile = File(...)) -> Any:
     try:
@@ -74,9 +66,7 @@ async def analyze_document(file: UploadFile = File(...)) -> Any:
         log.exception("Error during document analysis")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {e}")
 
-
-
-
+# ---------- COMPARE ----------
 @app.post("/compare")
 async def compare_documents(reference: UploadFile = File(...), actual: UploadFile = File(...)) -> Any:
     try:
@@ -97,7 +87,7 @@ async def compare_documents(reference: UploadFile = File(...), actual: UploadFil
         log.exception("Comparison failed")
         raise HTTPException(status_code=500, detail=f"Comparison failed: {e}")
 
-
+# ---------- CHAT: INDEX ----------
 @app.post("/chat/index")
 async def chat_build_index(
     files: List[UploadFile] = File(...),
@@ -164,3 +154,7 @@ async def chat_query(
     except Exception as e:
         log.exception("Chat query failed")
         raise HTTPException(status_code=500, detail=f"Query failed: {e}")
+
+# command for executing the fast api
+# uvicorn api.main:app --port 8080 --reload    
+#uvicorn api.main:app --host 0.0.0.0 --port 8080 --reload
