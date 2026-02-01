@@ -79,26 +79,30 @@ class ModelLoader:
             log.error("Error loading embedding model", error=str(e))
             raise DocumentPortalException("Failed to load embedding model", sys)
 
-    def load_llm(self):
+    def load_llm(self, provider: str = None):
         """
         Load and return the configured LLM model.
+        Args:
+            provider (str, optional): Explicit provider to load. Defaults to env var LLM_PROVIDER.
         """
         llm_block = self.config["llm"]
-        provider_key = os.getenv("LLM_PROVIDER", "google")
+        
+        # Use explicit provider if given, else fall back to env/default
+        provider_key = provider or os.getenv("LLM_PROVIDER", "groq")
 
         if provider_key not in llm_block:
             log.error("LLM provider not found in config", provider=provider_key)
             raise ValueError(f"LLM provider '{provider_key}' not found in config")
 
         llm_config = llm_block[provider_key]
-        provider = llm_config.get("provider")
+        provider_name = llm_config.get("provider")
         model_name = llm_config.get("model_name")
         temperature = llm_config.get("temperature", 0.2)
         max_tokens = llm_config.get("max_output_tokens", 2048)
 
-        log.info("Loading LLM", provider=provider, model=model_name)
+        log.info("Loading LLM", provider=provider_name, model=model_name)
 
-        if provider == "google":
+        if provider_name == "google":
             return ChatGoogleGenerativeAI(
                 model=model_name,
                 google_api_key=self.api_key_mgr.get("GOOGLE_API_KEY"),
@@ -106,7 +110,7 @@ class ModelLoader:
                 max_output_tokens=max_tokens
             )
 
-        elif provider == "groq":
+        elif provider_name == "groq":
             return ChatGroq(
                 model=model_name,
                 api_key=self.api_key_mgr.get("GROQ_API_KEY"), #type: ignore
@@ -122,8 +126,8 @@ class ModelLoader:
         #     )
 
         else:
-            log.error("Unsupported LLM provider", provider=provider)
-            raise ValueError(f"Unsupported LLM provider: {provider}")
+            log.error("Unsupported LLM provider", provider=provider_name)
+            raise ValueError(f"Unsupported LLM provider: {provider_name}")
 
 
 if __name__ == "__main__":

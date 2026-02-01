@@ -16,7 +16,25 @@ class DocumentAnalyzer:
     def __init__(self):
         try:
             self.loader=ModelLoader()
-            self.llm=self.loader.load_llm()
+            
+            # Fallback Logic (Consistency with Chat Module)
+            default_provider = os.getenv("LLM_PROVIDER", "groq")
+            backup_provider = "google" if default_provider == "groq" else "groq"
+            
+            log.info("Loading DocumentAnalyzer LLM", provider=default_provider)
+            primary_llm = self.loader.load_llm(provider=default_provider)
+            
+            backup_llm = None
+            try:
+                log.info("Loading Backup LLM for Analyzer", provider=backup_provider)
+                backup_llm = self.loader.load_llm(provider=backup_provider)
+            except Exception as e:
+                log.warning("Failed to load Backup LLM for Analyzer", error=str(e))
+                
+            if backup_llm:
+                self.llm = primary_llm.with_fallbacks([backup_llm])
+            else:
+                self.llm = primary_llm
             
             # Prepare parsers
             self.parser = JsonOutputParser(pydantic_object=Metadata)

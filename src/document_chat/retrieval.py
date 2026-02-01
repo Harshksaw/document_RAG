@@ -125,11 +125,36 @@ class ConversationalRAG:
 
     def _load_llm(self):
         try:
-            llm = ModelLoader().load_llm()
-            if not llm:
-                raise ValueError("LLM could not be loaded")
-            log.info("LLM loaded successfully", session_id=self.session_id)
-            return llm
+            # 1. Determine Primary and Backup Providers using simple logic
+            #    (In a real app, this map could be in config.yaml)
+            default_provider = os.getenv("LLM_PROVIDER", "groq")
+            backup_provider = "google" if default_provider == "groq" else "groq"
+
+            loader = ModelLoader()
+            
+            # 2. Load Primary
+            log.info("Loading Primary LLM", provider=default_provider)
+            primary_llm = loader.load_llm(provider=default_provider)
+            if not primary_llm:
+                 raise ValueError("Primary LLM could not be loaded")
+
+            # 3. Load Backup (Best Effort)
+            try:
+                log.info("Loading Backup LLM", provider=backup_provider)
+                backup_llm = loader.load_llm(provider=backup_provider)
+            except Exception as e:
+                log.warning("Failed to load Backup LLM. Fallback will not be active.", error=str(e))
+                backup_llm = None
+
+            # 4. Wrap with Fallback if possible
+            if backup_llm:
+                log.info("LLM Fallback configured", primary=default_provider, backup=backup_provider)
+                # This returns a RunnableWithFallbacks
+                return primary_llm.with_fallbacks([backup_llm])
+            else:
+                log.info("LLM loaded (No Fallback)", provider=default_provider)
+                return primary_llm
+
         except Exception as e:
             log.error("Failed to load LLM", error=str(e))
             raise DocumentPortalException("LLM loading error in ConversationalRAG", sys)

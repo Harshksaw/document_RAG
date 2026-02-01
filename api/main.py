@@ -64,7 +64,7 @@ async def analyze_document(file: UploadFile = File(...)) -> Any:
         raise
     except Exception as e:
         log.exception("Error during document analysis")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {e}")
+        raise HTTPException(status_code=500, detail="Document analysis service encountered an error. Please check logs or try again.")
 
 # ---------- COMPARE ----------
 @app.post("/compare")
@@ -85,7 +85,7 @@ async def compare_documents(reference: UploadFile = File(...), actual: UploadFil
         raise
     except Exception as e:
         log.exception("Comparison failed")
-        raise HTTPException(status_code=500, detail=f"Comparison failed: {e}")
+        raise HTTPException(status_code=500, detail="Document comparison service encountered an error.")
 
 # ---------- CHAT: INDEX ----------
 @app.post("/chat/index")
