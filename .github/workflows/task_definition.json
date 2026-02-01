@@ -28,8 +28,13 @@
       ],
       "secrets": [
         {
-          "name": "API_KEYS",
-          "valueFrom": "arn:aws:secretsmanager:us-west-2:713881791905:secret:llmops-Li3SrD"
+          "name": "GROQ_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-west-2:713881791905:secret:llmops-Li3SrD:GROQ_API_KEY"
+        },
+        {
+          "name": "GOOGLE_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-west-2:713881791905:secret:llmops-Li3SrD:GOOGLE_API_KEY"
+          
         }
         
       ],
