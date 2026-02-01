@@ -10,6 +10,92 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="/static/style.css" rel="stylesheet" />
+    <style>
+        /* Portfolio Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .profile-img {
+            width: 80px;
+            height: 80px;
+            background: #e0e7ff;
+            color: #4f46e5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+            font-weight: bold;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .tech-tag {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .btn-close {
+            background: #111827;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .btn-close:hover {
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 
 <body>
@@ -200,11 +286,44 @@
     </main>
 
     <footer class="app-footer">
-        <div>© Document Portal • Demo UI</div>
-        <div class="tiny">Frontend only – hook to your FastAPI later.</div>
+        <div>© 2026 Document Portal • Designed & Developed by <strong>Harsh Saw</strong></div>
+        <div class="tiny">Powered by FastAPI, LangChain & AWS ECS</div>
     </footer>
 
+    <!-- WELCOME MODAL -->
+    <div id="portfolio-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="profile-img">HS</div>
+            <h2>Hi, I'm Harsh Saw 👋</h2>
+            <p style="color: #6b7280; margin-top: 0.5rem;">
+                Welcome to my <strong>Document RAG Portal</strong>.
+                This project showcases an end-to-end AI application for analyzing and chatting with documents.
+            </p>
+
+            <div class="tech-stack">
+                <span class="tech-tag">⚡ FastAPI</span>
+                <span class="tech-tag">🦜🔗 LangChain</span>
+                <span class="tech-tag">🐳 Docker</span>
+                <span class="tech-tag">☁️ AWS ECS Fargate</span>
+                <span class="tech-tag">🧠 Google Gemini / Groq</span>
+            </div>
+
+            <button class="btn-close" onclick="closeModal()">Explore Demo</button>
+        </div>
+    </div>
+
     <script>
+        // Modal Logic
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('portfolio-modal').classList.add('show');
+            }, 500);
+        });
+
+        function closeModal() {
+            document.getElementById('portfolio-modal').classList.remove('show');
+        }
+
         // Base URL for API (same origin when opened via FastAPI)
         const API_BASE = "";
 
