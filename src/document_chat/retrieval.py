@@ -9,6 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import FAISS
 
 from utils.model_loader import ModelLoader
+from utils.token_counter import create_token_callback, get_token_counter
 from exception.custom_exception import DocumentPortalException
 from logger import GLOBAL_LOGGER as log
 from prompt.prompt_library import PROMPT_REGISTRY
@@ -95,8 +96,13 @@ class ConversationalRAG:
             log.error("Failed to load retriever from FAISS", error=str(e))
             raise DocumentPortalException("Loading error in ConversationalRAG", sys)
 
-    def invoke(self, user_input: str, chat_history: Optional[List[BaseMessage]] = None) -> str:
-        """Invoke the LCEL pipeline."""
+    def invoke(self, user_input: str, chat_history: Optional[List[BaseMessage]] = None) -> Dict[str, Any]:
+        """
+        Invoke the LCEL pipeline.
+
+        Returns:
+            Dict containing 'answer' and 'token_usage' for the operation.
+        """
         try:
             if self.chain is None:
                 raise DocumentPortalException(
@@ -104,19 +110,40 @@ class ConversationalRAG:
                 )
             chat_history = chat_history or []
             payload = {"input": user_input, "chat_history": chat_history}
-            answer = self.chain.invoke(payload)
+
+            # Create token counter callback for this invocation
+            token_callback = create_token_callback(
+                operation_type="chat",
+                session_id=self.session_id
+            )
+
+            # Get usage before invocation
+            counter = get_token_counter()
+            usage_before = counter.get_usage_by_type("chat")
+
+            answer = self.chain.invoke(payload, config={"callbacks": [token_callback]})
+
+            # Calculate tokens used in this call
+            usage_after = counter.get_usage_by_type("chat")
+            tokens_used = {
+                "input_tokens": usage_after["input_tokens"] - usage_before["input_tokens"],
+                "output_tokens": usage_after["output_tokens"] - usage_before["output_tokens"],
+                "total_tokens": usage_after["total_tokens"] - usage_before["total_tokens"]
+            }
+
             if not answer:
                 log.warning(
                     "No answer generated", user_input=user_input, session_id=self.session_id
                 )
-                return "no answer generated."
+                return {"answer": "no answer generated.", "token_usage": tokens_used}
             log.info(
                 "Chain invoked successfully",
                 session_id=self.session_id,
                 user_input=user_input,
                 answer_preview=str(answer)[:150],
+                token_usage=tokens_used
             )
-            return answer
+            return {"answer": answer, "token_usage": tokens_used}
         except Exception as e:
             log.error("Failed to invoke ConversationalRAG", error=str(e))
             raise DocumentPortalException("Invocation error in ConversationalRAG", sys)

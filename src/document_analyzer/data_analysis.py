@@ -1,6 +1,8 @@
 import os
 import sys
+from typing import Dict, Any
 from utils.model_loader import ModelLoader
+from utils.token_counter import create_token_callback, get_token_counter
 from logger import GLOBAL_LOGGER as log
 from exception.custom_exception import DocumentPortalException
 from model.models import *
@@ -51,26 +53,51 @@ class DocumentAnalyzer:
         
         
     
-    def analyze_document(self, document_text:str)-> dict:
+    def analyze_document(self, document_text: str) -> Dict[str, Any]:
         """
         Analyze a document's text and extract structured metadata & summary.
+
+        Returns:
+            Dict containing 'metadata' and 'token_usage' for the operation.
         """
         try:
             chain = self.prompt | self.llm | self.fixing_parser
-            
+
             log.info("Meta-data analysis chain initialized")
 
-            response = chain.invoke({
-                "format_instructions": self.parser.get_format_instructions(),
-                "document_text": document_text
-            })
+            # Create token counter callback for this invocation
+            token_callback = create_token_callback(operation_type="analyze")
 
-            log.info("Metadata extraction successful", keys=list(response.keys()))
-            
-            return response
+            # Get usage before invocation
+            counter = get_token_counter()
+            usage_before = counter.get_usage_by_type("analyze")
+
+            response = chain.invoke(
+                {
+                    "format_instructions": self.parser.get_format_instructions(),
+                    "document_text": document_text
+                },
+                config={"callbacks": [token_callback]}
+            )
+
+            # Calculate tokens used in this call
+            usage_after = counter.get_usage_by_type("analyze")
+            tokens_used = {
+                "input_tokens": usage_after["input_tokens"] - usage_before["input_tokens"],
+                "output_tokens": usage_after["output_tokens"] - usage_before["output_tokens"],
+                "total_tokens": usage_after["total_tokens"] - usage_before["total_tokens"]
+            }
+
+            log.info(
+                "Metadata extraction successful",
+                keys=list(response.keys()),
+                token_usage=tokens_used
+            )
+
+            return {"metadata": response, "token_usage": tokens_used}
 
         except Exception as e:
             log.error("Metadata analysis failed", error=str(e))
-            raise DocumentPortalException("Metadata extraction failed",sys)
+            raise DocumentPortalException("Metadata extraction failed", sys)
         
     

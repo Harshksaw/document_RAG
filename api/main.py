@@ -15,7 +15,8 @@ from src.document_ingestion.data_ingestion import (
 from src.document_analyzer.data_analysis import DocumentAnalyzer
 from src.document_compare.document_comparator import DocumentComparatorLLM
 from src.document_chat.retrieval import ConversationalRAG
-from utils.document_ops import FastAPIFileAdapter,read_pdf_via_handler
+from utils.document_ops import FastAPIFileAdapter, read_pdf_via_handler
+from utils.token_counter import get_token_counter
 from logger import GLOBAL_LOGGER as log
 
 FAISS_BASE = os.getenv("FAISS_BASE", "faiss_index")
@@ -58,7 +59,7 @@ async def analyze_document(file: UploadFile = File(...)) -> Any:
         text = read_pdf_via_handler(dh, saved_path)
         analyzer = DocumentAnalyzer()
         result = analyzer.analyze_document(text)
-        log.info("Document analysis complete.")
+        log.info("Document analysis complete.", token_usage=result.get("token_usage"))
         return JSONResponse(content=result)
     except HTTPException:
         raise
@@ -78,9 +79,13 @@ async def compare_documents(reference: UploadFile = File(...), actual: UploadFil
         _ = ref_path, act_path
         combined_text = dc.combine_documents()
         comp = DocumentComparatorLLM()
-        df = comp.compare_documents(combined_text)
-        log.info("Document comparison completed.")
-        return {"rows": df.to_dict(orient="records"), "session_id": dc.session_id}
+        df, token_usage = comp.compare_documents(combined_text)
+        log.info("Document comparison completed.", token_usage=token_usage)
+        return {
+            "rows": df.to_dict(orient="records"),
+            "session_id": dc.session_id,
+            "token_usage": token_usage
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -140,14 +145,15 @@ async def chat_query(
 
         rag = ConversationalRAG(session_id=session_id)
         rag.load_retriever_from_faiss(index_dir, k=k, index_name=FAISS_INDEX_NAME)  # build retriever + chain
-        response = rag.invoke(question, chat_history=[])
-        log.info("Chat query handled successfully.")
+        result = rag.invoke(question, chat_history=[])
+        log.info("Chat query handled successfully.", token_usage=result.get("token_usage"))
 
         return {
-            "answer": response,
+            "answer": result["answer"],
             "session_id": session_id,
             "k": k,
-            "engine": "LCEL-RAG"
+            "engine": "LCEL-RAG",
+            "token_usage": result.get("token_usage", {})
         }
     except HTTPException:
         raise
@@ -155,6 +161,59 @@ async def chat_query(
         log.exception("Chat query failed")
         raise HTTPException(status_code=500, detail=f"Query failed: {e}")
 
+# ---------- TOKEN USAGE ----------
+@app.get("/tokens/usage")
+def get_token_usage() -> Dict[str, Any]:
+    """Get token usage statistics for all operation types."""
+    try:
+        counter = get_token_counter()
+        return {
+            "by_type": counter.get_all_usage(),
+            "total": counter.get_total_usage()
+        }
+    except Exception as e:
+        log.exception("Failed to get token usage")
+        raise HTTPException(status_code=500, detail=f"Failed to get token usage: {e}")
+
+
+@app.get("/tokens/usage/{operation_type}")
+def get_token_usage_by_type(operation_type: str) -> Dict[str, Any]:
+    """Get token usage for a specific operation type (chat, analyze, compare)."""
+    try:
+        counter = get_token_counter()
+        return counter.get_usage_by_type(operation_type)
+    except Exception as e:
+        log.exception(f"Failed to get token usage for {operation_type}")
+        raise HTTPException(status_code=500, detail=f"Failed to get token usage: {e}")
+
+
+@app.get("/tokens/session/{session_id}")
+def get_session_token_usage(session_id: str) -> Dict[str, Any]:
+    """Get token usage for a specific session."""
+    try:
+        counter = get_token_counter()
+        return {
+            "session_id": session_id,
+            "usage": counter.get_session_usage(session_id)
+        }
+    except Exception as e:
+        log.exception(f"Failed to get token usage for session {session_id}")
+        raise HTTPException(status_code=500, detail=f"Failed to get token usage: {e}")
+
+
+@app.post("/tokens/reset")
+def reset_token_counter() -> Dict[str, str]:
+    """Reset all token counters."""
+    try:
+        counter = get_token_counter()
+        counter.reset()
+        log.info("Token counters reset")
+        return {"status": "ok", "message": "Token counters reset successfully"}
+    except Exception as e:
+        log.exception("Failed to reset token counters")
+        raise HTTPException(status_code=500, detail=f"Failed to reset counters: {e}")
+
+
 # command for executing the fast api
-# uvicorn api.main:app --port 8080 --reload    
-#uvicorn api.main:app --host 0.0.0.0 --port 8080 --reload
+# uvicorn api.main:app --port 8080 --reload
+# uvicorn api.main:app --host 0.0.0.0 --port 8080 --reload
