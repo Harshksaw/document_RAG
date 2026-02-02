@@ -215,5 +215,5 @@ def reset_token_counter() -> Dict[str, str]:
 
 
 # command for executing the fast api
-# uvicorn api.main:app --port 8080 --reload
-# uvicorn api.main:app --host 0.0.0.0 --port 8080 --reload
+# uvicorn api.main:app --port 6000 --reload
+# uvicorn api.main:app --host 0.0.0.0 --port 6000 --reload

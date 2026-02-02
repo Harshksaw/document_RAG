@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  document-rag:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: document-rag
+    ports:
+      - "6000:6000"
+    env_file:
+      - .env
+    environment:
+      - ENV=production
+    volumes:
+      - ./data:/app/data
+      - ./faiss_index:/app/faiss_index
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
