@@ -1,5 +1,5 @@
-faiss_db:
-  collection_name: "document_portal"
+qdrant:
+  url: "http://localhost:6333"
 
 
 embedding_model:

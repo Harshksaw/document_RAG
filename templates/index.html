@@ -201,7 +201,7 @@
         <section id="tab-chat" class="tab-panel active">
             <div class="card">
                 <h2>💬 Chat with your Documents</h2>
-                <p class="muted">Upload PDF/DOCX/TXT files, build a FAISS index, and chat with AI about your documents.</p>
+                <p class="muted">Upload PDF/DOCX/TXT files, store embeddings in Qdrant, and chat with AI about your documents.</p>
 
                 <form id="form-chat-index" class="form-grid" onsubmit="return false;">
                     <div class="field">
@@ -231,7 +231,7 @@
                             <input id="chat-k" type="number" value="5" min="1" max="20" />
                         </div>
                         <div class="field toggle-row">
-                            <label>Session-based FAISS</label>
+                            <label>Session-based Qdrant</label>
                             <label class="switch">
                                 <input id="chat-sessionized" type="checkbox" checked />
                                 <span class="slider"></span>
@@ -354,7 +354,7 @@
                     <div class="info-item">
                         <h4>💬 RAG Chat</h4>
                         <p><strong>Goal:</strong> Interactively query your knowledge base.</p>
-                        <p>Upload multiple PDFs/docs to build a FAISS vector index. You can then ask natural language
+                        <p>Upload multiple PDFs/docs to build a Qdrant vector collection. You can then ask natural language
                             questions, and the AI will answer based on the context retrieved from your files.</p>
                     </div>
 
@@ -364,7 +364,7 @@
                         <ul
                             style="list-style-position: inside; color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
                             <li>Adjust <strong>Chunk size</strong> for granularity.</li>
-                            <li>Toggle <strong>Session-based FAISS</strong> to keep indexes separate per session.</li>
+                            <li>Toggle <strong>Session-based Qdrant</strong> to keep collections separate per session.</li>
                         </ul>
                     </div>
                 </div>
@@ -374,7 +374,7 @@
 
     <footer class="app-footer">
         <div>© 2026 Document Portal • Designed & Developed by <strong>Harsh Saw</strong></div>
-        <div class="tiny">Powered by FastAPI, LangChain & AWS ECS</div>
+        <div class="tiny">Powered by FastAPI, LangChain & Qdrant</div>
     </footer>
 
     <!-- TOKEN USAGE PANEL -->

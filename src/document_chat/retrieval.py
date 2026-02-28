@@ -6,7 +6,8 @@ from typing import List, Optional, Dict, Any
 from langchain_core.messages import BaseMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_community.vectorstores import FAISS
+from langchain_qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
 
 from utils.model_loader import ModelLoader
 from utils.token_counter import create_token_callback, get_token_counter
@@ -22,7 +23,7 @@ class ConversationalRAG:
 
     Usage:
         rag = ConversationalRAG(session_id="abc")
-        rag.load_retriever_from_faiss(index_path="faiss_index/abc", k=5, index_name="index")
+        rag.load_retriever_from_qdrant(collection_name="abc", k=5)
         answer = rag.invoke("What is ...?", chat_history=[])
     """
 
@@ -52,48 +53,40 @@ class ConversationalRAG:
 
     # ---------- Public API ----------
 
-    def load_retriever_from_faiss(
+    def load_retriever_from_qdrant(
         self,
-        index_path: str,
+        collection_name: str,
         k: int = 5,
-        index_name: str = "index",
         search_type: str = "similarity",
         search_kwargs: Optional[Dict[str, Any]] = None,
     ):
         """
-        Load FAISS vectorstore from disk and build retriever + LCEL chain.
+        Load Qdrant vectorstore and build retriever + LCEL chain.
         """
         try:
-            if not os.path.isdir(index_path):
-                raise FileNotFoundError(f"FAISS index directory not found: {index_path}")
+            qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
+            client = QdrantClient(url=qdrant_url)
+            if not client.collection_exists(collection_name):
+                raise FileNotFoundError(f"Qdrant collection not found: {collection_name}")
 
             embeddings = ModelLoader().load_embeddings()
-            vectorstore = FAISS.load_local(
-                index_path,
-                embeddings,
-                index_name=index_name,
-                allow_dangerous_deserialization=True,  # ok if you trust the index
-            )
-
-            if search_kwargs is None:
-                search_kwargs = {"k": k}
+            vectorstore = QdrantVectorStore(client=client, collection_name=collection_name, embedding=embeddings)
 
             self.retriever = vectorstore.as_retriever(
-                search_type=search_type, search_kwargs=search_kwargs
+                search_type=search_type, search_kwargs=search_kwargs or {"k": k}
             )
             self._build_lcel_chain()
 
             log.info(
-                "FAISS retriever loaded successfully",
-                index_path=index_path,
-                index_name=index_name,
+                "Qdrant retriever loaded successfully",
+                collection_name=collection_name,
                 k=k,
                 session_id=self.session_id,
             )
             return self.retriever
 
         except Exception as e:
-            log.error("Failed to load retriever from FAISS", error=str(e))
+            log.error("Failed to load retriever from Qdrant", error=str(e))
             raise DocumentPortalException("Loading error in ConversationalRAG", sys)
 
     def invoke(self, user_input: str, chat_history: Optional[List[BaseMessage]] = None) -> Dict[str, Any]:
@@ -106,7 +99,7 @@ class ConversationalRAG:
         try:
             if self.chain is None:
                 raise DocumentPortalException(
-                    "RAG chain not initialized. Call load_retriever_from_faiss() before invoke().", sys
+                    "RAG chain not initialized. Call load_retriever_from_qdrant() before invoke().", sys
                 )
             chat_history = chat_history or []
             payload = {"input": user_input, "chat_history": chat_history}

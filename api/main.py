@@ -1,6 +1,7 @@
 import os
 from typing import List, Optional, Any, Dict
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
+from qdrant_client import QdrantClient
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -19,9 +20,8 @@ from utils.document_ops import FastAPIFileAdapter, read_pdf_via_handler
 from utils.token_counter import get_token_counter
 from logger import GLOBAL_LOGGER as log
 
-FAISS_BASE = os.getenv("FAISS_BASE", "faiss_index")
+QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 UPLOAD_BASE = os.getenv("UPLOAD_BASE", "data")
-FAISS_INDEX_NAME = os.getenv("FAISS_INDEX_NAME", "index")  # <--- keep consistent with save_local()
 
 app = FastAPI(title="Document Portal API", version="0.1")
 
@@ -109,13 +109,10 @@ async def chat_build_index(
         # created a object of ChatIngestor
         ci = ChatIngestor(
             temp_base=UPLOAD_BASE,
-            faiss_base=FAISS_BASE,
             use_session_dirs=use_session_dirs,
             session_id=session_id or None,
         )
-        # NOTE: ensure your ChatIngestor saves with index_name="index" or FAISS_INDEX_NAME
-        # e.g., if it calls FAISS.save_local(dir, index_name=FAISS_INDEX_NAME)
-        ci.built_retriver(  # if your method name is actually build_retriever, fix it there as well
+        ci.built_retriver(
             wrapped, chunk_size=chunk_size, chunk_overlap=chunk_overlap, k=k
         )
         log.info(f"Index created successfully for session: {ci.session_id}")
@@ -139,12 +136,12 @@ async def chat_query(
         if use_session_dirs and not session_id:
             raise HTTPException(status_code=400, detail="session_id is required when use_session_dirs=True")
 
-        index_dir = os.path.join(FAISS_BASE, session_id) if use_session_dirs else FAISS_BASE  # type: ignore
-        if not os.path.isdir(index_dir):
-            raise HTTPException(status_code=404, detail=f"FAISS index not found at: {index_dir}")
+        collection_name = session_id
+        if not QdrantClient(url=QDRANT_URL).collection_exists(collection_name):
+            raise HTTPException(status_code=404, detail=f"Qdrant collection not found: {collection_name}. Upload documents first.")
 
         rag = ConversationalRAG(session_id=session_id)
-        rag.load_retriever_from_faiss(index_dir, k=k, index_name=FAISS_INDEX_NAME)  # build retriever + chain
+        rag.load_retriever_from_qdrant(collection_name, k=k)
         result = rag.invoke(question, chat_history=[])
         log.info("Chat query handled successfully.", token_usage=result.get("token_usage"))
 
